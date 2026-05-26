@@ -20,7 +20,7 @@ uploaded = []
 
 # 2. find media files and iterate over them
 
-file_paths = Dir.glob(dir_path+"/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,gif,GIF}")
+file_paths = Dir.glob(dir_path+"/*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,gif,GIF,mp4,MP4}")
 
 file_paths.each do |file_path|
   basename = File.basename(file_path)
