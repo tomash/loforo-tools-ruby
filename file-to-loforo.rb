@@ -1,14 +1,9 @@
-LOFORO_ENDPOINT = "https://loforo.com/api/post/create"
+# frozen_string_literal: true
 
-require "./loforo_lib"
+require_relative "lib/loforo"
 
-file_path = ARGV[0]
-
-if(file_path.nil? || !File.exist?(file_path) || !File.file?(file_path))
-  abort "need valid path to media file"
-else
-  puts "#{file_path} ..."
+begin
+  Loforo::FileUploader.new(ARGV[0], client: Loforo.client_from_env).run
+rescue ArgumentError => e
+  abort e.message
 end
-
-res = post_file_to_loforo(file_path, LOFORO_ENDPOINT, LOFORO_API_KEY)
-puts res.inspect
