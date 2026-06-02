@@ -29,7 +29,7 @@ class LoforoDirUploaderTest < Minitest::Test
       history = JSON.load_file(File.join(dir, "uploaded.json"))
       assert_equal 2, history.size
       assert_equal "a.jpg", history[0]["filename"]
-      assert_equal frozen_time.to_s, history[0]["uploaded_at"]
+      assert_equal frozen_time.iso8601, history[0]["uploaded_at"]
     end
   end
 
