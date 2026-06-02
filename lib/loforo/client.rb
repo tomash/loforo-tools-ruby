@@ -6,7 +6,9 @@ module Loforo
   class Client
     DEFAULT_ENDPOINT = "https://loforo.com/api/post/create"
 
-    def initialize(api_key:, endpoint: DEFAULT_ENDPOINT, http: HTTP)
+    TIMEOUT_OPTIONS = { connect: 5, read: 30 }.freeze
+
+    def initialize(api_key:, endpoint: DEFAULT_ENDPOINT, http: HTTP.timeout(TIMEOUT_OPTIONS))
       @api_key = api_key
       @endpoint = endpoint
       @http = http
