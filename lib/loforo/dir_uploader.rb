@@ -5,6 +5,12 @@ require "json"
 
 module Loforo
   class DirUploader
+    RunResult = Struct.new(:uploaded, :failures, keyword_init: true) do
+      def processed_any?
+        !uploaded.empty? || !failures.empty?
+      end
+    end
+
     MEDIA_GLOB = "*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,gif,GIF,mp4,MP4}"
 
     def initialize(dir_path, client:, logger: $stdout, now: -> { Time.now.utc })
@@ -19,10 +25,10 @@ module Loforo
       @logger.puts "#{@dir_path} ..."
 
       FileUtils.mkdir_p(uploaded_dir)
-      new_entries = upload_media_files
-      persist_uploaded_json(merge_upload_history(new_entries))
-      move_files(new_entries)
-      new_entries
+      result = upload_media_files
+      persist_uploaded_json(merge_upload_history(result.uploaded))
+      move_files(result.uploaded)
+      result
     end
 
     def media_file_paths
@@ -46,20 +52,28 @@ module Loforo
     end
 
     def upload_media_files
-      media_file_paths.filter_map do |file_path|
-        upload_file(file_path)
+      uploaded = []
+      failures = []
+      media_file_paths.each do |file_path|
+        entry, failure = upload_file(file_path)
+        uploaded << entry if entry
+        failures << failure if failure
       end
+      RunResult.new(uploaded: uploaded, failures: failures)
     end
 
     def upload_file(file_path)
       response = @client.post_file(file_path)
+      basename = File.basename(file_path)
       if response.status.success?
         @logger.puts "posting file #{file_path} successful :)"
-        basename = File.basename(file_path)
-        { "filename" => basename, "uploaded_at" => @now.call.iso8601 }
+        entry = { "filename" => basename, "uploaded_at" => @now.call.iso8601 }
+        [entry, nil]
       else
-        @logger.puts "posting file #{file_path} failed :( \t\t details: #{response.status.to_s}"
-        nil
+        status = response.status.to_s
+        @logger.puts "posting file #{file_path} failed :( \t\t details: #{status}"
+        failure = { "filename" => basename, "status" => status }
+        [nil, failure]
       end
     end
 
