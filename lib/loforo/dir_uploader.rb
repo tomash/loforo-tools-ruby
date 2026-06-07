@@ -21,6 +21,7 @@ module Loforo
       FileUtils.mkdir_p(uploaded_dir)
       new_entries = upload_media_files
       persist_uploaded_json(merge_upload_history(new_entries))
+      move_files(new_entries)
     end
 
     def media_file_paths
@@ -54,11 +55,18 @@ module Loforo
       if response.status.success?
         @logger.puts "posting file #{file_path} successful :)"
         basename = File.basename(file_path)
-        FileUtils.move(file_path, File.join(uploaded_dir, basename))
-        { "filename" => basename, "uploaded_at" => @now.call.to_s }
+        { "filename" => basename, "uploaded_at" => @now.call.iso8601 }
       else
-        @logger.puts "posting file #{file_path} failed :("
+        @logger.puts "posting file #{file_path} failed :( \t\t details: #{response.status.to_s}"
         nil
+      end
+    end
+
+    def move_files(entries)
+      entries.each do |entry|
+        src = File.join(@dir_path, entry["filename"])
+        dst = File.join(uploaded_dir, entry["filename"])
+        FileUtils.move(src, dst) if File.exist?(src)
       end
     end
 

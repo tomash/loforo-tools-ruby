@@ -38,4 +38,12 @@ class LoforoClientTest < Minitest::Test
   def test_default_endpoint
     assert_equal "https://loforo.com/api/post/create", Loforo::Client::DEFAULT_ENDPOINT
   end
+
+  def test_client_from_env_raises_without_api_key
+    original = ENV.delete("LOFORO_API_KEY")
+    error = assert_raises(ArgumentError) { Loforo.client_from_env }
+    assert_match(/LOFORO_API_KEY/, error.message)
+  ensure
+    ENV["LOFORO_API_KEY"] = original if original
+  end
 end

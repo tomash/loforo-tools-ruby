@@ -12,7 +12,11 @@ module Loforo
       validate!
       @logger.puts "#{@file_path} ..."
       response = @client.post_file(@file_path)
-      @logger.puts response.inspect
+      if response.status.success?
+        @logger.puts "upload successful: #{response.inspect}"
+      else
+        @logger.puts "upload failed: #{response.status.to_s}"
+      end
       response
     end
 

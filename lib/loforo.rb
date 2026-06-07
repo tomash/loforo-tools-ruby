@@ -9,7 +9,7 @@ module Loforo
 
   def client_from_env(endpoint: Client::DEFAULT_ENDPOINT)
     api_key = ENV.fetch("LOFORO_API_KEY") do
-      abort "LOFORO_API_KEY environment variable is required"
+      raise ArgumentError, "LOFORO_API_KEY environment variable is required"
     end
     Client.new(api_key: api_key, endpoint: endpoint)
   end
