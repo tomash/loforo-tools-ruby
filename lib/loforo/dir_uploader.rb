@@ -22,6 +22,7 @@ module Loforo
       new_entries = upload_media_files
       persist_uploaded_json(merge_upload_history(new_entries))
       move_files(new_entries)
+      new_entries
     end
 
     def media_file_paths

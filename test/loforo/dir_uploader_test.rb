@@ -18,8 +18,10 @@ class LoforoDirUploaderTest < Minitest::Test
         logger: log,
         now: -> { frozen_time }
       )
-      uploader.run
+      entries = uploader.run
 
+      assert_equal 2, entries.size
+      assert_equal "a.jpg", entries[0]["filename"]
       assert_equal 2, client.posted.size
       refute File.exist?(File.join(dir, "a.jpg"))
       refute File.exist?(File.join(dir, "clip.mp4"))
@@ -60,8 +62,9 @@ class LoforoDirUploaderTest < Minitest::Test
       path = File.join(dir, "bad.jpg")
       File.write(path, "jpg")
 
-      Loforo::DirUploader.new(dir, client: client, logger: StringIO.new).run
+      entries = Loforo::DirUploader.new(dir, client: client, logger: StringIO.new).run
 
+      assert_equal [], entries
       assert File.exist?(path)
       assert_equal [], JSON.load_file(File.join(dir, "uploaded.json"))
     end
