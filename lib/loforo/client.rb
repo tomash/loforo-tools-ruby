@@ -15,6 +15,7 @@ module Loforo
     end
 
     def post_file(file_path, content: "", title: "", status: "0")
+      content = PostContent.resolve(file_path, content)
       @http.post(@endpoint, form: {
         key: @api_key,
         content: content,
