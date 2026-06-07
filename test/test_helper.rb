@@ -15,7 +15,7 @@ module LoforoTestHelpers
   end
 
   def failure_response
-    status = Struct.new(:success?).new(false)
+    status = Struct.new(:success?, :to_s).new(false, "500 Error")
     Struct.new(:status).new(status)
   end
 

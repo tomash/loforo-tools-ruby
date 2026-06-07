@@ -6,6 +6,7 @@ require_relative "loforo/client"
 require_relative "loforo/dir_uploader"
 require_relative "loforo/file_uploader"
 require_relative "loforo/ntfy_notifier"
+require_relative "loforo/email_notifier"
 
 module Loforo
   module_function
@@ -26,6 +27,10 @@ module Loforo
 
   def ntfy_notifier_from_env(**)
     NtfyNotifier.from_env(**)
+  end
+
+  def email_notifier_from_env(**)
+    EmailNotifier.from_env(**)
   end
 end
 

@@ -18,10 +18,11 @@ class LoforoDirUploaderTest < Minitest::Test
         logger: log,
         now: -> { frozen_time }
       )
-      entries = uploader.run
+      result = uploader.run
 
-      assert_equal 2, entries.size
-      assert_equal "a.jpg", entries[0]["filename"]
+      assert_equal 2, result.uploaded.size
+      assert_equal [], result.failures
+      assert_equal "a.jpg", result.uploaded[0]["filename"]
       assert_equal 2, client.posted.size
       refute File.exist?(File.join(dir, "a.jpg"))
       refute File.exist?(File.join(dir, "clip.mp4"))
@@ -62,9 +63,11 @@ class LoforoDirUploaderTest < Minitest::Test
       path = File.join(dir, "bad.jpg")
       File.write(path, "jpg")
 
-      entries = Loforo::DirUploader.new(dir, client: client, logger: StringIO.new).run
+      result = Loforo::DirUploader.new(dir, client: client, logger: StringIO.new).run
 
-      assert_equal [], entries
+      assert_equal [], result.uploaded
+      assert_equal 1, result.failures.size
+      assert_equal "bad.jpg", result.failures[0]["filename"]
       assert File.exist?(path)
       assert_equal [], JSON.load_file(File.join(dir, "uploaded.json"))
     end
@@ -75,6 +78,30 @@ class LoforoDirUploaderTest < Minitest::Test
       %w[photo.JPG movie.MP4].each { |name| File.write(File.join(dir, name), "x") }
       paths = Loforo::DirUploader.new(dir, client: fake_client, logger: StringIO.new).media_file_paths
       assert_equal 2, paths.size
+    end
+  end
+
+  def test_mixed_results_report_uploaded_and_failed
+    ok = success_response
+    bad = failure_response
+    client = Class.new do
+      define_method(:post_file) do |path, **|
+        path.end_with?("good.jpg") ? ok : bad
+      end
+    end.new
+
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "good.jpg"), "jpg")
+      File.write(File.join(dir, "bad.jpg"), "jpg")
+
+      result = Loforo::DirUploader.new(dir, client: client, logger: StringIO.new).run
+
+      assert_equal 1, result.uploaded.size
+      assert_equal "good.jpg", result.uploaded[0]["filename"]
+      assert_equal 1, result.failures.size
+      assert_equal "bad.jpg", result.failures[0]["filename"]
+      refute File.exist?(File.join(dir, "good.jpg"))
+      assert File.exist?(File.join(dir, "bad.jpg"))
     end
   end
 
