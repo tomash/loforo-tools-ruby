@@ -3,6 +3,7 @@
 require "dotenv"
 
 require_relative "loforo/post_content"
+require_relative "loforo/video_upload_check"
 require_relative "loforo/client"
 require_relative "loforo/dir_uploader"
 require_relative "loforo/file_uploader"

@@ -13,11 +13,13 @@ module Loforo
 
     MEDIA_GLOB = "*.{jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP,gif,GIF,mp4,MP4}"
 
-    def initialize(dir_path, client:, logger: $stdout, now: -> { Time.now.utc })
+    def initialize(dir_path, client:, logger: $stdout, now: -> { Time.now.utc },
+                   video_upload_check: VideoUploadCheck.new)
       @dir_path = dir_path
       @client = client
       @logger = logger
       @now = now
+      @video_upload_check = video_upload_check
     end
 
     def run
@@ -63,6 +65,11 @@ module Loforo
     end
 
     def upload_file(file_path)
+      unless @video_upload_check.uploadable?(file_path)
+        @logger.puts "skipping #{file_path}: MP4 longer than #{VideoUploadCheck::MAX_DURATION_SEC}s"
+        return [nil, nil]
+      end
+
       response = @client.post_file(file_path)
       basename = File.basename(file_path)
       if response.status.success?
