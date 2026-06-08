@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "fileutils"
+
 module Loforo
   class FileUploader
     def initialize(file_path, client:, logger: $stdout, video_upload_check: VideoUploadCheck.new)
@@ -14,6 +16,7 @@ module Loforo
       @logger.puts "#{@file_path} ..."
       unless @video_upload_check.uploadable?(@file_path)
         @logger.puts "skipping #{@file_path}: MP4 longer than #{VideoUploadCheck::MAX_DURATION_SEC}s"
+        move_to_skipped_subdir
         return nil
       end
 
@@ -32,6 +35,14 @@ module Loforo
       unless @file_path && File.exist?(@file_path) && File.file?(@file_path)
         raise ArgumentError, "need valid path to media file"
       end
+    end
+
+    def move_to_skipped_subdir
+      dir = File.dirname(@file_path)
+      skipped_dir = File.join(dir, "skipped")
+      FileUtils.mkdir_p(skipped_dir)
+      dst = File.join(skipped_dir, File.basename(@file_path))
+      FileUtils.move(@file_path, dst) if File.exist?(@file_path)
     end
   end
 end

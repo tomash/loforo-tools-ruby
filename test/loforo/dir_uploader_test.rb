@@ -128,8 +128,10 @@ class LoforoDirUploaderTest < Minitest::Test
 
       assert_equal [], result.uploaded
       assert_equal [], result.failures
+      assert_equal ["long.mp4"], result.skipped
       assert_equal [], client.posted
-      assert File.exist?(path)
+      refute File.exist?(path)
+      assert File.exist?(File.join(dir, "skipped", "long.mp4"))
       assert_match(/skipping.*longer than 15\.0s/, log.string)
     end
   end
