@@ -109,4 +109,30 @@ class LoforoDirUploaderTest < Minitest::Test
     uploader = Loforo::DirUploader.new(nil, client: fake_client, logger: StringIO.new)
     assert_raises(ArgumentError) { uploader.run }
   end
+
+  def test_skips_long_mp4_without_posting
+    client = fake_client
+    log = StringIO.new
+    check = Loforo::VideoUploadCheck.new(ffprobe_available: true, duration_for: ->(_) { 20 })
+
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "long.mp4")
+      File.write(path, "mp4")
+
+      result = Loforo::DirUploader.new(
+        dir,
+        client: client,
+        logger: log,
+        video_upload_check: check
+      ).run
+
+      assert_equal [], result.uploaded
+      assert_equal [], result.failures
+      assert_equal ["long.mp4"], result.skipped
+      assert_equal [], client.posted
+      refute File.exist?(path)
+      assert File.exist?(File.join(dir, "skipped", "long.mp4"))
+      assert_match(/skipping.*longer than 15\.0s/, log.string)
+    end
+  end
 end

@@ -3,9 +3,10 @@
 module Loforo
   module PostContent
     # Loforo returns HTTP 400 ("Missing 'content'") for some MP4 uploads when the
-    # multipart content field is blank; always send a non-empty value for video.
+    # multipart content field is blank. Use the filename stem (not whitespace):
+    # a space-only caption is stripped in the UI and, if video processing fails,
+    # the post looks completely empty even though the API returned success.
     VIDEO_SUFFIXES = %w[.mp4 .MP4].freeze
-    FALLBACK_CONTENT = " "
 
     module_function
 
@@ -13,7 +14,7 @@ module Loforo
       return content unless content.empty?
       return content unless video?(file_path)
 
-      FALLBACK_CONTENT
+      File.basename(file_path, File.extname(file_path))
     end
 
     def video?(file_path)

@@ -12,12 +12,10 @@ class LoforoPostContentTest < Minitest::Test
   end
 
   def test_fills_empty_content_for_mp4
-    assert_equal Loforo::PostContent::FALLBACK_CONTENT,
-                 Loforo::PostContent.resolve("/tmp/clip.mp4", "")
+    assert_equal "clip", Loforo::PostContent.resolve("/tmp/clip.mp4", "")
   end
 
   def test_fills_empty_content_for_uppercase_mp4
-    assert_equal Loforo::PostContent::FALLBACK_CONTENT,
-                 Loforo::PostContent.resolve("/tmp/clip.MP4", "")
+    assert_equal "clip", Loforo::PostContent.resolve("/tmp/clip.MP4", "")
   end
 end
